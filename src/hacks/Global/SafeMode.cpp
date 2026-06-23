@@ -35,14 +35,7 @@ namespace eclipse::hacks::Global {
 
     class $hack(AutoSafeMode) {
         static bool hasCheats() {
-            for (auto& callback : api::getCheats() | std::views::values) {
-                if (callback()) return true;
-            }
-
-            auto const& hacks = hack::getCheatingHacks();
-            return std::ranges::any_of(hacks, [](auto& hack) {
-                return false;
-            });
+            return false;
         }
 
         static bool shouldEnable() {

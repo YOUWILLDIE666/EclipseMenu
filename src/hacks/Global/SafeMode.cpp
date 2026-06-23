@@ -41,57 +41,30 @@ namespace eclipse::hacks::Global {
 
             auto const& hacks = hack::getCheatingHacks();
             return std::ranges::any_of(hacks, [](auto& hack) {
-                return hack->isCheating();
+                return false;
             });
         }
 
         static bool shouldEnable() {
-            if (!config::get<bool>("global.autosafemode", false))
-                return false;
-
-            return s_trippedLastAttempt || hasCheats();
+            return false;
         }
 
         static void updateCheatStates() {
-            for (auto const& hack : hack::getCheatingHacks()) {
-                if (hack->isCheating()) {
-                    s_attemptCheats[hack->getId()] = true;
-                } else if (s_attemptCheats.contains(hack->getId())) {
-                    s_attemptCheats[hack->getId()] = false;
-                }
-            }
-            for (auto& [id, active] : api::getCheats()) {
-                if (active()) {
-                    s_attemptCheats[id] = true;
-                } else if (s_attemptCheats.contains(id)) {
-                    s_attemptCheats[id] = false;
-                }
-            }
+            for (auto const& hack : hack::getCheatingHacks())
+                s_attemptCheats[hack->getId()] = false;
+			
+            for (auto& [id, active] : api::getCheats())
+                s_attemptCheats[id] = false;
         }
 
         static std::string constructMessage() {
             std::string message = "";
-            message.reserve(s_attemptCheats.size() * 20);
-            for (auto const& [id, active] : s_attemptCheats) {
-                fmt::format_to(std::back_inserter(message), "- {}{}</c>\n", active ? "<cr>" : "<co>", id);
-            }
-
-            // Remove the last newline
-            if (!message.empty())
-                message.pop_back();
 
             return message;
         }
 
         static void showPopup(std::string const& message) {
-            if (!s_trippedLastAttempt && !hasCheats())
-                return;
-
-            FLAlertLayer::create(
-                nullptr,
-                "Cheats Detected", message, "OK",
-                nullptr, 400, true, 0, 1
-            )->show();
+            return;
         }
 
         void init() override {
@@ -107,7 +80,7 @@ namespace eclipse::hacks::Global {
 
         void update() override {
             this->updateCheatStates();
-            auto hasCheats = this->hasCheats();
+            auto hasCheats = false;
             s_trippedLastAttempt |= hasCheats;
             config::setTemp("hasCheats", hasCheats);
             config::setTemp("trippedSafeMode", s_trippedLastAttempt);
@@ -218,12 +191,12 @@ namespace eclipse::hacks::Global {
     };
 
     #define NormalColor gui::Colors::GREEN
-    #define CheatingColor gui::Colors::RED
-    #define TrippedColor gui::Color { 0.72f, 0.37f, 0.f }
+    //#define CheatingColor gui::Colors::RED
+    //#define TrippedColor gui::Color { 0.72f, 0.37f, 0.f }
 
     static CCMenuItemSpriteExtra* createCI() {
         auto ci = cocos2d::CCLabelBMFont::create(".", "bigFont.fnt");
-        auto color = AutoSafeMode::hasCheats() ? CheatingColor : s_trippedLastAttempt ? TrippedColor : NormalColor;
+        auto color = NormalColor;
         ci->setColor(color.toCCColor3B());
         auto msg = AutoSafeMode::constructMessage();
         auto btn = gui::cocos::createSpriteExtra(ci, [msg = std::move(msg)](auto) {

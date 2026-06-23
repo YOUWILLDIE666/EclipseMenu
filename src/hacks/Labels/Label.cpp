@@ -29,11 +29,9 @@ namespace eclipse::hacks::Labels {
             return;
         }
 
-        bool isCheating = config::getTemp<"hasCheats">(false);
-        bool hasTripped = config::getTemp<"trippedSafeMode">(false);
         bool showOnlyCheating = config::get<"labels.cheat-indicator.only-cheating">(false);
 
-        if (showOnlyCheating && !(isCheating || hasTripped)) {
+        if (showOnlyCheating) {
             label->setVisible(false);
             return;
         }
@@ -45,9 +43,7 @@ namespace eclipse::hacks::Labels {
         );
 
         // Cheating - Red, Tripped - Orange, Normal - Green
-        auto color = isCheating ? gui::Colors::RED : hasTripped
-                                ? gui::Color{0.72f, 0.37f, 0.f}
-                                : gui::Colors::GREEN;
+        auto color = gui::Colors::GREEN;
         label->setColor(color.toCCColor3B());
     }
 
